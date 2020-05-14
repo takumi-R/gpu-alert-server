@@ -10,7 +10,6 @@ gpu_dict_users =[]
 
 def add_alarm(channel_id,gpu_id = None,gpu_mem = 1000):
     gpu_dict_users.append({ "channel_id":channel_id,'gpu_id':gpu_id,'mem' : np.array(gpu_mem) })
-    print(gpu_dict_users)
 def send_alarm(channel_id,gpu_id = None):
         print("sending")
         ls_str = "gpu_id:" + str(gpu_id) + " has enough memory for you"
@@ -20,7 +19,6 @@ def send_alarm(channel_id,gpu_id = None):
              channel=channel_id,
              text=ls_str
                   )
-        print(M)
 
 @app.route('/gpu_status',methods=["POST"])
 def hello():
@@ -29,7 +27,6 @@ def hello():
     content = request.json
     print(content)
     if not 'gpu_id' in content:
-          print("id")
           abort(400)
     if not 'gpu_size' in content:
           abort(400)
@@ -37,7 +34,6 @@ def hello():
           abort(400)
     gpu_dict[content['gpu_id']] = { 'size' :content['gpu_size'] , 'mem' : content['gpu_mem'],'name' : content['name'] }
     for gpu_dict_int in range(len(gpu_dict_users)):
-        print(int((gpu_dict_users[gpu_dict_int]['mem'] -  np.array(gpu_dict[gpu_dict_users[gpu_dict_int]['gpu_id']]['size'])).max()))
         if int((np.array(gpu_dict[gpu_dict_users[gpu_dict_int]['gpu_id']]['size']) - gpu_dict_users[gpu_dict_int]['mem']).max())<0:
             send_alarm(gpu_dict_users[gpu_dict_int]['channel_id'],gpu_dict_users[gpu_dict_int]['gpu_id'])
             del gpu_dict_users[gpu_dict_int]
@@ -46,7 +42,6 @@ def hello():
 def slack_gpu():
     if request.form['token'] == str(verfica_token):
         relay_str = "/remind_gpu " + request.form['text'] + "\n"
-        print(request.form['text'])
     else:
         abort(400)
     if request.form['text'] == str("ls") :
@@ -61,11 +56,8 @@ def slack_gpu():
         gpu_id,gpu_mem= request.form['text'].split(" ")
         try:
             gpu_id = int(gpu_id)
-            print(gpu_mem)
             gpu_mem = map(int,gpu_mem.split(","))
-            print(gpu_mem)
             gpu_mem = list(gpu_mem)
-            print(gpu_mem)
         except:
             return jsonify({'text':relay_str + "unknown format"})
         add_alarm(request.form['channel_id'],gpu_id,gpu_mem)
