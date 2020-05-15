@@ -1,0 +1,6 @@
+env_server.sh
+database_test.sh
+*.zip
+ngrok
+flask/*
+__pycache__/*
