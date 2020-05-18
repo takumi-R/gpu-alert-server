@@ -24,9 +24,7 @@ class database_set:
                 'database' : 'Aquadatabase'
                  }        
 
-       print(self.config)
        try:
-           print(self.config)
            self.cnx = mysql.connector.connect(**self.config)
            self.cursor = self.cnx.cursor()
 
@@ -57,16 +55,11 @@ class database_set:
                       "SET pcid=%s,pcgpuid=%s,memory=%s "
                       "WHERE gpuid=%s")
 
-        self.cursor.execute("SELECT * FROM pcname")
-        print(self.cursor.fetchall())
 
         self.cursor.execute(add_pc,(str(content['name']),str(content['name'])))
-        self.cursor.execute("SELECT * FROM pcname")
-        print(self.cursor.fetchall())
 
         self.cursor.execute(get_pcid,(str(content['name']),))
         pcid = self.cursor.fetchall()
-        print(pcid)
 
         for gpu_size_i in range(len(content['gpu_size'])):
             self.cursor.execute(check_pc,(pcid[0][0],gpu_size_i))
@@ -92,7 +85,7 @@ class database_set:
         check_reserv = ("select channelid,pcid from reserv WHERE channelid=%s and pcid=%s")
         
 
-        check_reservgpu = ("select reservid,memory from reservgpu WHERE reservid=%s and gpuid=%s")
+        check_reservgpuid = ("select reservgpuid,memory from reservgpu WHERE reservid=%s and gpuid=%s")
 
         add_reservgpu = ("INSERT INTO reservgpu(reservid,memory,gpuid) "
                              "VALUES (%s,%s,%s)")
@@ -100,9 +93,6 @@ class database_set:
         update_reservgpu = ("UPDATE reservgpu "
                             "SET reservid=%s,memory=%s,gpuid=%s "
                             "WHERE reservgpuid=%s")
-
-        get_reservgpuid = ("SELECT reservgpuid from reservgpu "
-                      "where reservid=%s ,memory=%s ,gpuid=%s")
 
         get_gpuid  = ("SELECT gpuid from pcgpu "
                       "where pcid=%s and pcgpuid=%s ")
@@ -113,16 +103,23 @@ class database_set:
         self.cursor.execute(get_reserv,(channel_id,pc_id))
         reservid = self.cursor.fetchall()
 
+
+        print("gpuid:"+ str(len(gpu_mem)))
         for gpu_size_i in range(len(gpu_mem)):
 
             self.cursor.execute(get_gpuid,(pc_id,gpu_size_i))
             gpuid = self.cursor.fetchall()
-            print(gpuid)
-            self.cursor.execute(check_reservgpu,(reservid[0][0],gpu_size_i))
-            if not len(self.cursor.fetchall()):
+            print(type(reservid[0][0]))
+            print(type(gpuid[0][0]))
+            print("gpuid:"+ str(gpuid[0][0]))
+            print("reservid:"+ str(reservid[0][0]))
+            self.cursor.execute(check_reservgpuid,(reservid[0][0],gpuid[0][0]))
+            reservgpuid=self.cursor.fetchall()
+            print(reservgpuid)
+            if not len(check_reservgpuid):
                 self.cursor.execute(add_reservgpu,(reservid[0][0],gpu_mem[gpu_size_i],gpuid[0][0]))
             else:    
-                self.cursor.execute(update_reservgpu,(reservid[0][0],gpu_mem[gpu_size_i],gpuid[0][0]))
+                self.cursor.execute(update_reservgpu,(reservid[0][0],gpu_mem[gpu_size_i],gpuid[0][0],reservgpuid[0][0]))
 
         
         self.cnx.commit()
@@ -143,7 +140,6 @@ class database_set:
         channelid_list = []
         self.cursor.execute(get_reserv_single)
         reserv_single = self.cursor.fetchall()
-        print(reserv_single)
         for reservid in reserv_single:    
             self.cursor.execute(get_reserv_memnum,(reservid[0],))
             reservid_mem_num = self.cursor.fetchall()
@@ -163,6 +159,10 @@ class database_set:
       self.cursor.execute("select * from pcname")
       ls_name = self.cursor.fetchall()
       return ls_name
+    def get_gpu_num(self,pc_id):
+        self.cursor.execute("SELECT COUNT(*)  FROM pcgpu WHERE pcid=%s",(pc_id,))
+        return self.cursor.fetchall()[0][0]
+
                         
 
 
