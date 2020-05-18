@@ -3,16 +3,10 @@ import os
 USERNAME_SQL = os.environ.get("USERNAME_SQL")
 PASSWD_SQL = os.environ.get("PASSWD_SQL")
 """
-ql> create table pcname( pcid int NOT NULL AUTO_INCREMENT, name text,PRIMARY KEY (pcid));
-
+create table pcname( pcid int NOT NULL AUTO_INCREMENT, name text,PRIMARY KEY (pcid));
 create table pcgpu( gpuid int NOT NULL AUTO_INCREMENT, pcid int NOT NULL, pcgpuid int NOT NULL,memory int NOT NULL,PRIMARY KEY (gpuid),FOREIGN KEY (pcid) REFERENCES pcname(pcid) );
-mysql> create table reserv( reservid int NOT NULL AUTO_INCREMENT, channelid text  NOT NULL,pcid int NOT NULL ,PRIMARY KEY (reservid),FOREIGN KEY (pcid) REFERENCES pcname(pcid) );
+create table reserv( reservid int NOT NULL AUTO_INCREMENT, channelid text  NOT NULL,pcid int NOT NULL ,PRIMARY KEY (reservid),FOREIGN KEY (pcid) REFERENCES pcname(pcid) );
 create table reservgpu(reservgpuid int NOT NULL AUTO_INCREMENT,reservid int NOT NULL,gpuid int NOT NULL,memory text NOT NULL ,PRIMARY KEY (reservgpuid),FOREIGN KEY (reservid) REFERENCES reserv(reservid),FOREIGN KEY (gpuid) REFERENCES pcgpu(gpuid) );
-
-mysql> create table reservgpu(reservgpuid int NOT NULL AUTO_INCREMENT,reservid int NOT NULL,memory text NOT NULL ,PRIMARY KEY (reservgpuid),FOREIGN KEY (reservid) REFERENCES reserv(reservid) );
-
-
-
 
 """
 class database_set:
@@ -74,7 +68,6 @@ class database_set:
 
         self.cnx.commit()
     def set_reserv(self,channel_id,pc_id,gpu_mem):
-        #create table reservgpu(reservgpuid int NOT NULL AUTO_INCREMENT,reservid int NOT NULL,gpuid int NOT NULL,memory text NOT NULL ,PRIMARY KEY (reservgpuid),FOREIGN KEY (reservid) REFERENCES reserv(reservid),FOREIGN KEY (gpuid) REFERENCES pcgpu(gpuid) );
 
         add_reserv = ("INSERT INTO reserv(channelid ,pcid) "
                       "VALUES (%s,%s)")
@@ -116,7 +109,7 @@ class database_set:
             self.cursor.execute(check_reservgpuid,(reservid[0][0],gpuid[0][0]))
             reservgpuid=self.cursor.fetchall()
             print(reservgpuid)
-            if not len(check_reservgpuid):
+            if not len(reservgpuid):
                 self.cursor.execute(add_reservgpu,(reservid[0][0],gpu_mem[gpu_size_i],gpuid[0][0]))
             else:    
                 self.cursor.execute(update_reservgpu,(reservid[0][0],gpu_mem[gpu_size_i],gpuid[0][0],reservgpuid[0][0]))
